@@ -1,0 +1,64 @@
+# Node modules directory
+node_modules/
+
+# Build output
+build/
+dist/
+out/
+
+# Dependency directories
+jspm_packages/
+
+# Environment files
+.env
+.env.*.local
+.env.local
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE and editor directories
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Misc
+*.swp
+*.swo
+*.swn
+
+# Test coverage
+coverage/
+
+# React Native specific
+.expo/
+.expo-shared/
+
+# Storybook specific
+.storybook/
+
+# Expo
+expo-apps.json
+
+# Yarn lock file (for Yarn users)
+yarn.lock
+
+# npm lock file (for npm users)
+package-lock.json
+
+# Production directories
+public/
+
+# Firebase
+.firebase/
+
+# Next.js specific
+.next/
+out/
