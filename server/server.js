@@ -30,7 +30,8 @@ Deno.serve({
           board,
           pawnsA,
           pawnsB,
-          currentPlayer 
+          currentPlayer,
+          gameStart 
         }));
       };
 

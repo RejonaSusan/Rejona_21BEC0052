@@ -11,56 +11,15 @@ function App() {
   const [pawnsA, setPawnsA] = useState(["P1", "P2", "P3", "H1", "H2"]);
   const [pawnsB, setPawnsB] = useState(["P1", "P2", "P3", "H1", "H2"]);
   const [selectedCell, setSelectedCell] = useState(null);
+  const [gameStart, setGameStart] = useState(false);
 
   const handleCellClick = (rowId, colId) => {
     // Logic to handle cell clicks
-    if(board[rowId][colId] !== "NA"){
+    if(gameStart && board[rowId][colId] !== "NA"){
       console.log(`Cell clicked: (${rowId}, ${colId})`);
       setSelectedCell({row: rowId, col: colId});
     }else{
       console.log("invalid select");
-    }
-
-    if (selectedCell) {
-      // Move pawn logic
-      websocket.send(JSON.stringify({
-        type: 'MOVE_PAWN',
-        row: rowId,
-        col: colId,
-        player: currentPlayer,
-        direction: 'up' // Example direction, update as needed
-      }));
-      setSelectedCell(null);
-    } else {
-      // Select cell logic
-      setSelectedCell({ row: rowId, col: colId });
-    }
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === 'ArrowDown' && selectedCell) {
-      const { row, col } = selectedCell;
-      const pawn = board[row][col];
-      const newRow = Math.min(row + 1, 4); // Move down, but don't go out of bounds
-      
-      if (board[newRow][col] === "NA") { // Check if the new cell is empty
-        const updatedBoard = board.map((r, rowIndex) =>
-          r.map((c, colIndex) => {
-            if (rowIndex === row && colIndex === col) return "NA";
-            if (rowIndex === newRow && colIndex === col) return pawn;
-            return c;
-          })
-        );
-        setBoard(updatedBoard);
-        setSelectedCell({ row: newRow, col });
-        websocket.send(JSON.stringify({
-          type: 'MOVE_PAWN',
-          row: newRow,
-          col,
-          player: currentPlayer,
-          direction: 'down'
-        }));
-      }
     }
   };
 
@@ -98,11 +57,13 @@ function App() {
         setPawnsA(data.pawnsA);
         setPawnsB(data.pawnsB);
         setCurrentPlayer(data.currentPlayer);
+        setGameStarted(data.gameStart);
       } else if (data.type === 'UPDATE_BOARD') {
         setBoard(data.board);
         setPawnsA(data.pawnsA);
         setPawnsB(data.pawnsB);
         setCurrentPlayer(data.currentPlayer);
+        setGameStarted(data.gameStart);
       }
     };
 
@@ -113,14 +74,6 @@ function App() {
     websocket.onerror = (e) => {
       console.log("error" + e.data);
     };
-
-    window.addEventListener('keydown', handleKeyDown);
-
-    // Cleanup event listener on component unmount
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-    
   }, [wsUri]);
 
   return (
