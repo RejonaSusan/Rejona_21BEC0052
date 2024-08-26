@@ -1,8 +1,8 @@
-let board = Array(5).fill().map(() => Array(5).fill("NA"));
+let board = Array(5).fill().map(() => Array(5).fill(''));
 let currentPlayer = 'A';
 
-let pawnsA = ["P1", "P2", "P3", "H1", "H2"];
-let pawnsB = ["P1", "P2", "P3", "H1", "H2"];
+let pawnsA = ["A-P1", "A-P2", "A-P3", "A-H1", "A-H2"];
+let pawnsB = ["B-P1", "B-P2", "B-P3", "B-H1", "B-H2"];
 
 let gameStart = false;
 
@@ -38,26 +38,62 @@ Deno.serve({
       socket.onmessage = (event) => {
         console.log(`RECEIVED: ${event.data}`);
         const data = JSON.parse(event.data);
-
+      
         if (data.type === 'PLACE_PAWN') {
           const { row, col, player, pawn } = data;
-
+      
           if (currentPlayer === player) {
-            if (board[row][col] === "NA") {
-              if (player === 'A' && row === 0) {
-                board[row][col] = pawn;
-                pawnsA = pawnsA.filter(p => p !== pawn);
-                currentPlayer = 'B';
-              } else if (player === 'B' && row === 4) {
-                board[row][col] = pawn;
-                pawnsB = pawnsB.filter(p => p !== pawn);
-                currentPlayer = 'A';
+            if (board[row][col] === '') {
+              if (currentPlayer === player) {
+                const opponentPlayer = player === 'A' ? 'B' : 'A';
+                // Ensure Player A places pawns in row 0
+                if (player === 'A' && row === 0) {
+                  if (board[row][col] === '') {
+                    board[row][col] = pawn;
+                    pawnsA = pawnsA.filter(p => p !== pawn);
+                    currentPlayer = 'B';
+                  } else {
+                    socket.send(JSON.stringify({
+                      type: 'ERROR',
+                      message: 'Position already occupied'
+                    }));
+                    console.log("Position already occupied");
+                  }
+                } 
+                // Ensure Player B places pawns in row 4
+                else if (player === 'B' && row === 4) {
+                  if (board[row][col] === '') {
+                    board[row][col] = pawn;
+                    pawnsB = pawnsB.filter(p => p !== pawn);
+                    currentPlayer = 'A';
+                  } else {
+                    socket.send(JSON.stringify({
+                      type: 'ERROR',
+                      message: 'Position already occupied'
+                    }));
+                    console.log("Position already occupied");
+                  }
+                } 
+                // Error if player places pawn in the wrong row
+                else {
+                  socket.send(JSON.stringify({
+                    type: 'ERROR',
+                    message: player === 'A' ? 'Player A can only place pawns in row 0' : 'Player B can only place pawns in row 4'
+                  }));
+                  console.log(player === 'A' ? 'Player A can only place pawns in row 0' : 'Player B can only place pawns in row 4');
+                }
+              } else {
+                socket.send(JSON.stringify({
+                  type: 'ERROR',
+                  message: 'Not your turn'
+                }));
+                console.log("Not your turn");
               }
-
+      
               if (pawnsA.length === 0 && pawnsB.length === 0) {
                 gameStart = true;
               }
-
+      
               broadcast([...clients], JSON.stringify({
                 type: 'UPDATE_BOARD',
                 board,
@@ -74,116 +110,32 @@ Deno.serve({
               console.log("Position already occupied");
             }
           }
-        } else if (data.type === 'MOVE_PAWN' && gameStart) {
-          const { row, col, player, direction } = data;
-          const pawn = board[row][col];
-
-          if (pawn !== "NA" && currentPlayer === player) {
-            // Update the board based on the direction
-            let newRow = row, newCol = col;
-
-            switch (direction) {
-              case 'up':
-                newRow = Math.max(row - 1, 0);
-                break;
-              case 'down':
-                newRow = Math.min(row + 1, 4);
-                break;
-              case 'left':
-                newCol = Math.max(col - 1, 0);
-                break;
-              case 'right':
-                newCol = Math.min(col + 1, 4);
-                break;
-            }
-
-            if (board[newRow][newCol] === "NA") {
-              board[newRow][newCol] = pawn;
-              board[row][col] = "NA";
-              currentPlayer = currentPlayer === 'A' ? 'B' : 'A';
-              broadcast([...clients], JSON.stringify({
-                type: 'UPDATE_BOARD',
-                board,
-                currentPlayer
-              }));
-            }
-          }
-        }
-      };
-
-      socket.onmessage = (event) => {
-        const data = JSON.parse(event.data);
+        } else if (data.type === 'MOVE_PAWN') { // New block for moving pawns
+          const { fromRow, fromCol, toRow, toCol, player } = data;
       
-        if (data.type === 'PLACE_PAWN') {
-          const { row, col, player, pawn } = data;
+          if (board[fromRow][fromCol] !== '' && board[toRow][toCol] === '' && currentPlayer === player) {
+            const pawn = board[fromRow][fromCol];
+            board[fromRow][fromCol] = '';
+            board[toRow][toCol] = pawn;
+            currentPlayer = currentPlayer === 'A' ? 'B' : 'A';
       
-          if (currentPlayer === player) {
-            if (board[row][col] === "NA") {
-              if (player === 'A' && row === 0) {
-                board[row][col] = pawn;
-                pawnsA = pawnsA.filter(p => p !== pawn);
-                currentPlayer = 'B';
-              } else if (player === 'B' && row === 4) {
-                board[row][col] = pawn;
-                pawnsB = pawnsB.filter(p => p !== pawn);
-                currentPlayer = 'A';
-              }
-      
-              if (pawnsA.length === 0 && pawnsB.length === 0) {
-                gameStart = true;
-              }
-              
-              broadcast([...clients], JSON.stringify({
-                type: 'UPDATE_BOARD',
-                board,
-                pawnsA,
-                pawnsB,
-                currentPlayer
-              }));
-            } else {
-              socket.send(JSON.stringify({
-                type: 'ERROR'
-              }));
-              console.log("Position already occupied");
-            }
-          }
-        } else if (data.type === 'MOVE_PAWN' && gameStart) {
-          const { row, col, player, direction } = data;
-          const pawn = board[row][col];
-          
-          if (pawn !== "NA" && currentPlayer === player) {
-            let newRow = row, newCol = col;
-      
-            switch (direction) {
-              case 'up':
-                newRow = Math.max(row - 1, 0);
-                break;
-              case 'down':
-                newRow = Math.min(row + 1, 4);
-                break;
-              case 'left':
-                newCol = Math.max(col - 1, 0);
-                break;
-              case 'right':
-                newCol = Math.min(col + 1, 4);
-                break;
-            }
-      
-            if (board[newRow][newCol] === "NA") {
-              board[newRow][newCol] = pawn;
-              board[row][col] = "NA";
-              currentPlayer = currentPlayer === 'A' ? 'B' : 'A';
-              broadcast([...clients], JSON.stringify({
-                type: 'UPDATE_BOARD',
-                board,
-                currentPlayer
-              }));
-            }
+            broadcast([...clients], JSON.stringify({
+              type: 'UPDATE_BOARD',
+              board,
+              pawnsA,
+              pawnsB,
+              currentPlayer,
+              gameStart
+            }));
+          } else {
+            socket.send(JSON.stringify({
+              type: 'ERROR',
+              message: 'Invalid move'
+            }));
           }
         }
       };
       
-
       socket.onclose = () => {
         console.log("DISCONNECTED");
         clients.delete(socket);

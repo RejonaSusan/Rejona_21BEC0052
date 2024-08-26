@@ -5,23 +5,33 @@ function App() {
   const wsUri = "ws://127.0.0.1/";
   const websocket = new WebSocket(wsUri);
 
-  const [board, setBoard] = useState(Array(5).fill().map(() => Array(5).fill("NA")));
+  const [board, setBoard] = useState(Array(5).fill().map(() => Array(5).fill('')));
   const [draggedPawn, setDraggedPawn] = useState(null);
   const [currentPlayer, setCurrentPlayer] = useState('A');
-  const [pawnsA, setPawnsA] = useState(["P1", "P2", "P3", "H1", "H2"]);
-  const [pawnsB, setPawnsB] = useState(["P1", "P2", "P3", "H1", "H2"]);
+  const [pawnsA, setPawnsA] = useState(["A-P1", "A-P2", "A-P3", "A-H1", "A-H2"]);
+  const [pawnsB, setPawnsB] = useState(["B-P1", "B-P2", "B-P3", "B-H1", "B-H2"]);
   const [selectedCell, setSelectedCell] = useState(null);
   const [gameStart, setGameStart] = useState(false);
 
+
   const handleCellClick = (rowId, colId) => {
-    // Logic to handle cell clicks
-    if(gameStart && board[rowId][colId] !== "NA"){
-      console.log(`Cell clicked: (${rowId}, ${colId})`);
-      setSelectedCell({row: rowId, col: colId});
-    }else{
-      console.log("invalid select");
+    if (gameStart && selectedCell) {
+      const pawn = 
+      websocket.send(JSON.stringify({
+        type: 'MOVE_PAWN',
+        fromRow: selectedCell.row,
+        fromCol: selectedCell.col,
+        toRow: rowId,
+        toCol: colId,
+        player: currentPlayer,
+        pawn: pawn
+      }));
+      setSelectedCell(null);
+    } else if (board[rowId][colId] !== '') {
+      setSelectedCell({ row: rowId, col: colId });
     }
   };
+  
 
   const dragStart = (e, pawn) => {
     setDraggedPawn(pawn);
@@ -57,13 +67,13 @@ function App() {
         setPawnsA(data.pawnsA);
         setPawnsB(data.pawnsB);
         setCurrentPlayer(data.currentPlayer);
-        setGameStarted(data.gameStart);
+        setGameStart(data.gameStart);
       } else if (data.type === 'UPDATE_BOARD') {
         setBoard(data.board);
         setPawnsA(data.pawnsA);
         setPawnsB(data.pawnsB);
         setCurrentPlayer(data.currentPlayer);
-        setGameStarted(data.gameStart);
+        setGameStart(data.gameStart);
       }
     };
 
@@ -74,10 +84,12 @@ function App() {
     websocket.onerror = (e) => {
       console.log("error" + e.data);
     };
+
   }, [wsUri]);
 
   return (
     <div className='flex flex-row items-center justify-center text-center bg-black text-white p-5'>
+      <h1 className='text-xl absolute top-0 left-1/2 transform -translate-x-1/2 mt-20'>It is {currentPlayer}'s turn</h1>
       <div className="p-5 flex flex-col gap-3 justify-center items-center mr-20">
         <div className='p-2'><h2>Player 1</h2></div>
         {pawnsA.map((pawn, index) => (
@@ -85,7 +97,7 @@ function App() {
             key={index}
             draggable
             onDragStart={(e) => dragStart(e, pawn)}
-            className="w-10 h-10 border border-white flex items-center justify-center bg-gray-800 text-white"
+            className="w-20 h-10 border border-white flex items-center justify-center bg-gray-800 text-white"
           >
             {pawn}
           </div>
@@ -115,7 +127,7 @@ function App() {
             key={index}
             draggable
             onDragStart={(e) => dragStart(e, pawn)}
-            className="w-10 h-10 border border-white flex items-center justify-center bg-gray-800 text-white"
+            className="w-20 h-10 border border-white flex items-center justify-center bg-gray-800 text-white"
           >
             {pawn}
           </div>
