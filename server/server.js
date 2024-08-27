@@ -190,14 +190,14 @@ Deno.serve({
           if (isValidMove(fromRow, fromCol, toRow, toCol, player, pawnType)) {
             
             const targetPawn = board[toRow][toCol];            
-            if ((targetPawn === '' || targetPawn.charAt(0) !== player) && currentPlayer === player) {
+            if ((targetPawn === '' || (targetPawn.charAt(0) !== player && !pawnType.startsWith('P'))) && currentPlayer === player) {
               // Move pawn
 
               board[toRow][toCol] = pawn;
               board[fromRow][fromCol] = '';
       
               // Handle capturing
-              if (targetPawn !== '') {
+              if (targetPawn !== '' && !pawnType.startsWith('P')) {
                 if (player === 'A') {
                   pawnsB = pawnsB.filter(p => p !== targetPawn);
                   pawnsA.push(targetPawn); // Add captured pawn to player A's list
