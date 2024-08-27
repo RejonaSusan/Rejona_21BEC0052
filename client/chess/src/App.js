@@ -33,6 +33,30 @@ function App() {
     }
   };
   
+  // const handleCellClick = (rowId, colId) => {
+  //   if (gameStart) {
+  //     if (selectedCell) {
+  //       const pawn = board[selectedCell.row][selectedCell.col];
+  //       websocket.send(JSON.stringify({
+  //         type: 'MOVE_PAWN',
+  //         fromRow: selectedCell.row,
+  //         fromCol: selectedCell.col,
+  //         toRow: rowId,
+  //         toCol: colId,
+  //         player: currentPlayer,
+  //         pawn: pawn
+  //       }));
+  //       setSelectedCell(null);
+  //     } else if (board[rowId][colId] !== '') {
+  //       if (currentPlayer === board[rowId][colId].charAt(0)) {
+  //         setSelectedCell({ row: rowId, col: colId });
+  //       } else {
+  //         setMsg("Select your own pawn to move");
+  //       }
+  //     }
+  //   }
+  // };
+  
 
   const dragStart = (e, pawn) => {
     setDraggedPawn(pawn);
