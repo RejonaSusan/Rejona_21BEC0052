@@ -12,11 +12,12 @@ function App() {
   const [pawnsB, setPawnsB] = useState(["B-P1", "B-P2", "B-P3", "B-H1", "B-H2"]);
   const [selectedCell, setSelectedCell] = useState(null);
   const [gameStart, setGameStart] = useState(false);
+  const [msg, setMsg] = useState('');
 
 
   const handleCellClick = (rowId, colId) => {
     if (gameStart && selectedCell) {
-      const pawn = 
+      const pawn = board[selectedCell.row][selectedCell.col];
       websocket.send(JSON.stringify({
         type: 'MOVE_PAWN',
         fromRow: selectedCell.row,
@@ -62,18 +63,28 @@ function App() {
 
     websocket.onmessage = (e) => {
       const data = JSON.parse(e.data);
-      if (data.type === 'INITIAL_STATE') {
-        setBoard(data.board);
-        setPawnsA(data.pawnsA);
-        setPawnsB(data.pawnsB);
-        setCurrentPlayer(data.currentPlayer);
-        setGameStart(data.gameStart);
-      } else if (data.type === 'UPDATE_BOARD') {
-        setBoard(data.board);
-        setPawnsA(data.pawnsA);
-        setPawnsB(data.pawnsB);
-        setCurrentPlayer(data.currentPlayer);
-        setGameStart(data.gameStart);
+      switch(data.type){
+        case 'INITIAL_STATE':
+          setBoard(data.board);
+          setPawnsA(data.pawnsA);
+          setPawnsB(data.pawnsB);
+          setCurrentPlayer(data.currentPlayer);
+          setGameStart(data.gameStart);
+          setMsg(data.msg || '');
+          break;
+        case 'UPDATE_BOARD':
+          setBoard(data.board);
+          setPawnsA(data.pawnsA);
+          setPawnsB(data.pawnsB);
+          setCurrentPlayer(data.currentPlayer);
+          setGameStart(data.gameStart);
+          setMsg(data.msg || '');
+          break;
+        case 'ERROR':
+          setMsg(data.msg || '');
+          break;
+        default:
+          setMsg(data.msg || '');
       }
     };
 
@@ -89,6 +100,7 @@ function App() {
 
   return (
     <div className='flex flex-row items-center justify-center text-center bg-black text-white p-5'>
+      <h1 className='text-xl absolute top-0 left-1/2 transform -translate-x-1/2 mt-10'>{msg}</h1>
       <h1 className='text-xl absolute top-0 left-1/2 transform -translate-x-1/2 mt-20'>It is {currentPlayer}'s turn</h1>
       <div className="p-5 flex flex-col gap-3 justify-center items-center mr-20">
         <div className='p-2'><h2>Player 1</h2></div>
