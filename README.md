@@ -26,8 +26,8 @@ Ensure you have the following installed on your system:
 1. **Clone the repository**:
 
     ```bash
-    git clone https://github.com/yourusername/pawn-hero-game.git
-    cd pawn-hero-game
+    git clone https://github.com/RejonaSusan/Rejona_21BEC0052.git
+    cd client/chess
     ```
 
 2. **Install Node.js dependencies**:
@@ -102,10 +102,4 @@ The goal is to capture all of the opponent's pawns. The first player to achieve 
 3. **Victory**:
    - Capture all of your opponent's pawns to win the game.
 
-## Contributing
 
-Contributions are welcome! Feel free to fork this repository and submit pull requests.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
